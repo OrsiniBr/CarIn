@@ -160,13 +160,36 @@ contract ParkingSpot is Ownable, ReentrancyGuard {
     }
 
     /**
-     * @dev Create a booking for a parking spot
+     * @notice Create a booking for a parking spot
+     * @dev Includes time-based lock checks and price calculation
+     * @param spotId The ID of the spot to book
+     * @param startTime The start time of the booking (Unix timestamp)
+     * @param endTime The end time of the booking (Unix timestamp)
+     * @return bookingId The ID of the newly created booking
      */
     function createBooking(uint256 spotId, uint256 startTime, uint256 endTime) external nonReentrant returns (uint256) {
-        require(spots[spotId].id != 0, "Spot does not exist");
-        require(spots[spotId].isAvailable, "Spot is not available");
-        require(startTime < endTime, "Invalid time range");
-        require(startTime >= block.timestamp, "Start time must be in the future");
+        if (spots[spotId].id == 0) {
+            revert SpotDoesNotExist();
+        }
+        if (!spots[spotId].isAvailable) {
+            revert SpotNotAvailable();
+        }
+        if (startTime >= endTime) {
+            revert InvalidTimeRange();
+        }
+        if (startTime < block.timestamp) {
+            revert StartTimeInPast();
+        }
+        if (msg.sender == spots[spotId].owner) {
+            revert CannotBookOwnSpot();
+        }
+        if (!isTimeSlotAvailable(spotId, startTime, endTime)) {
+            revert TimeSlotAlreadyBooked();
+        }
+
+        // Calculate total price based on duration
+        uint256 duration = endTime - startTime;
+        uint256 totalPrice = (duration * spots[spotId].pricePerHour) / 3600; // Convert seconds to hours
 
         bookingCounter++;
         bookings[bookingCounter] = Booking({
@@ -175,14 +198,16 @@ contract ParkingSpot is Ownable, ReentrancyGuard {
             user: msg.sender,
             startTime: startTime,
             endTime: endTime,
+            totalPrice: totalPrice,
             isActive: true,
-            isCancelled: false
+            isCancelled: false,
+            isCompleted: false
         });
 
         userBookings[msg.sender].push(bookingCounter);
-        spots[spotId].isAvailable = false;
+        spotBookings[spotId].push(bookingCounter);
 
-        emit BookingCreated(bookingCounter, spotId, msg.sender, startTime, endTime);
+        emit BookingCreated(bookingCounter, spotId, msg.sender, startTime, endTime, totalPrice);
         return bookingCounter;
     }
 
