@@ -224,7 +224,33 @@ contract ParkingSpot is Ownable, ReentrancyGuard {
         booking.isActive = false;
         spots[booking.spotId].isAvailable = true;
 
-        emit BookingCancelled(bookingId, msg.sender);
+        emit BookingCancelled(bookingId, booking.spotId, msg.sender);
+    }
+
+    /**
+     * @notice Mark a booking as completed
+     * @dev Can be called by the renter or spot owner after the booking end time
+     * @param bookingId The ID of the booking to complete
+     */
+    function completeBooking(uint256 bookingId) external {
+        Booking storage booking = bookings[bookingId];
+        if (booking.bookingId == 0) {
+            revert SpotDoesNotExist(); // Reuse error for booking
+        }
+        if (booking.user != msg.sender && spots[booking.spotId].owner != msg.sender) {
+            revert NotAuthorized();
+        }
+        if (booking.isCancelled || booking.isCompleted) {
+            revert BookingNotActive();
+        }
+        if (block.timestamp < booking.endTime) {
+            revert InvalidTimeRange(); // Booking hasn't ended yet
+        }
+
+        booking.isCompleted = true;
+        booking.isActive = false;
+
+        emit BookingCompleted(bookingId, booking.spotId, booking.user);
     }
 
     /**
