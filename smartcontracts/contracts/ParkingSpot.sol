@@ -302,6 +302,37 @@ contract ParkingSpot is Ownable, ReentrancyGuard {
     }
 
     /**
+     * @notice Transfer ownership of a parking spot to a new owner
+     * @dev Only the current owner can transfer ownership
+     * @param spotId The ID of the spot to transfer
+     * @param newOwner The address of the new owner
+     */
+    function transferSpotOwnership(uint256 spotId, address newOwner) external onlySpotOwner(spotId) nonReentrant {
+        if (newOwner == address(0)) {
+            revert InvalidOwner();
+        }
+        if (newOwner == spots[spotId].owner) {
+            revert InvalidOwner(); // Same owner
+        }
+
+        address previousOwner = spots[spotId].owner;
+        spots[spotId].owner = newOwner;
+
+        // Update owner spots mapping
+        uint256[] storage oldOwnerSpots = ownerSpots[previousOwner];
+        for (uint256 i = 0; i < oldOwnerSpots.length; i++) {
+            if (oldOwnerSpots[i] == spotId) {
+                oldOwnerSpots[i] = oldOwnerSpots[oldOwnerSpots.length - 1];
+                oldOwnerSpots.pop();
+                break;
+            }
+        }
+        ownerSpots[newOwner].push(spotId);
+
+        emit SpotOwnershipTransferred(spotId, previousOwner, newOwner);
+    }
+
+    /**
      * @dev Get spot details
      */
     function getSpot(uint256 spotId) external view returns (Spot memory) {
