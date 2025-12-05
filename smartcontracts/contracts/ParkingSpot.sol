@@ -25,25 +25,27 @@ contract ParkingSpot is Ownable, ReentrancyGuard {
     error TimeSlotAlreadyBooked();
     error InvalidOwner();
 
-    // Spot structure
+    // Spot structure (optimized for storage packing)
     struct Spot {
-        uint256 id;
-        address owner;
-        string location; // IPFS hash for location data
-        uint256 pricePerHour; // Price in wei
-        bool isAvailable;
-        uint256 createdAt;
+        uint256 id;              // Slot 0
+        address owner;           // Slot 1 (20 bytes, can pack with bool)
+        uint256 pricePerHour;    // Slot 2
+        uint256 createdAt;       // Slot 3
+        string location;         // Slot 4+ (dynamic)
+        bool isAvailable;        // Packed with owner in Slot 1
     }
 
-    // Booking structure
+    // Booking structure (optimized for storage packing)
     struct Booking {
-        uint256 bookingId;
-        uint256 spotId;
-        address user;
-        uint256 startTime;
-        uint256 endTime;
-        bool isActive;
-        bool isCancelled;
+        uint256 bookingId;       // Slot 0
+        uint256 spotId;          // Slot 1
+        address user;            // Slot 2 (20 bytes, can pack with bools)
+        uint256 startTime;       // Slot 3
+        uint256 endTime;         // Slot 4
+        uint256 totalPrice;      // Slot 5
+        bool isActive;           // Packed with user in Slot 2
+        bool isCancelled;        // Packed with user in Slot 2
+        bool isCompleted;        // Packed with user in Slot 2
     }
 
     // State variables
