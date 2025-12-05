@@ -280,6 +280,28 @@ contract ParkingSpot is Ownable, ReentrancyGuard {
     }
 
     /**
+     * @notice Verify if an address is the owner of a spot
+     * @param spotId The ID of the spot to check
+     * @param owner The address to verify
+     * @return isOwner True if the address is the owner
+     */
+    function isSpotOwner(uint256 spotId, address owner) external view returns (bool) {
+        return spots[spotId].owner == owner;
+    }
+
+    /**
+     * @notice Get the owner of a spot
+     * @param spotId The ID of the spot
+     * @return owner The address of the spot owner
+     */
+    function getSpotOwner(uint256 spotId) external view returns (address) {
+        if (spots[spotId].owner == address(0)) {
+            revert SpotDoesNotExist();
+        }
+        return spots[spotId].owner;
+    }
+
+    /**
      * @dev Get spot details
      */
     function getSpot(uint256 spotId) external view returns (Spot memory) {
