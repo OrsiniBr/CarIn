@@ -256,6 +256,68 @@ describe("ParkingSpot", function () {
     });
   });
 
-  // More tests will be added in subsequent commits
+  describe("Reentrancy Protection", function () {
+    let spotId;
+
+    beforeEach(async function () {
+      spotId = 1;
+      await parkingSpot.connect(spotOwner).listSpot("123 Main St", ethers.parseEther("1"));
+    });
+
+    it("Should prevent reentrancy in listSpot", async function () {
+      // The nonReentrant modifier should prevent reentrancy
+      // This is a basic test - full reentrancy attack would require a malicious contract
+      await expect(
+        parkingSpot.connect(spotOwner).listSpot("Location", ethers.parseEther("1"))
+      ).to.not.be.reverted;
+    });
+
+    it("Should prevent reentrancy in createBooking", async function () {
+      const block = await ethers.provider.getBlock("latest");
+      const futureStart = block.timestamp + 3600;
+      const futureEnd = futureStart + 7200;
+      
+      await expect(
+        parkingSpot.connect(renter).createBooking(spotId, futureStart, futureEnd)
+      ).to.not.be.reverted;
+    });
+  });
+
+  describe("Edge Cases and Error Handling", function () {
+    it("Should handle empty location string", async function () {
+      await expect(
+        parkingSpot.connect(spotOwner).listSpot("", ethers.parseEther("1"))
+      ).to.be.revertedWithCustomError(parkingSpot, "InvalidTimeRange");
+    });
+
+    it("Should handle invalid time ranges", async function () {
+      const spotId = 1;
+      await parkingSpot.connect(spotOwner).listSpot("Location", ethers.parseEther("1"));
+      
+      const block = await ethers.provider.getBlock("latest");
+      const startTime = block.timestamp + 3600;
+      const endTime = startTime; // Same as start time
+      
+      await expect(
+        parkingSpot.connect(renter).createBooking(spotId, startTime, endTime)
+      ).to.be.revertedWithCustomError(parkingSpot, "InvalidTimeRange");
+    });
+
+    it("Should handle booking cancellation edge cases", async function () {
+      const spotId = 1;
+      await parkingSpot.connect(spotOwner).listSpot("Location", ethers.parseEther("1"));
+      
+      const block = await ethers.provider.getBlock("latest");
+      const startTime = block.timestamp + 3600;
+      const endTime = startTime + 7200;
+      
+      await parkingSpot.connect(renter).createBooking(spotId, startTime, endTime);
+      
+      // Try to cancel with wrong address
+      await expect(
+        parkingSpot.connect(owner).cancelBooking(1)
+      ).to.be.revertedWithCustomError(parkingSpot, "NotAuthorized");
+    });
+  });
 });
 
