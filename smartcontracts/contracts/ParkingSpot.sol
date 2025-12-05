@@ -124,6 +124,20 @@ contract ParkingSpot is Ownable, ReentrancyGuard {
     }
 
     /**
+     * @notice Modifier to verify spot ownership
+     * @param spotId The ID of the spot to verify
+     */
+    modifier onlySpotOwner(uint256 spotId) {
+        if (spots[spotId].owner == address(0)) {
+            revert SpotDoesNotExist();
+        }
+        if (spots[spotId].owner != msg.sender) {
+            revert NotSpotOwner();
+        }
+        _;
+    }
+
+    /**
      * @dev List a new parking spot
      */
     function listSpot(string memory location, uint256 pricePerHour) external returns (uint256) {
