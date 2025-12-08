@@ -1,6 +1,5 @@
 "use client";
 
-import { useState, useEffect } from "react";
 import QRCodeDisplay from "./QRCodeDisplay";
 
 interface Spot {
@@ -14,17 +13,6 @@ interface BookingConfirmationProps {
 }
 
 export default function BookingConfirmation({ bookingId, spot }: BookingConfirmationProps) {
-  const [qrValue, setQrValue] = useState("");
-
-  useEffect(() => {
-    // Generate QR code data with booking ID and validation info
-    const qrData = JSON.stringify({
-      bookingId,
-      spotId: spot.id,
-      timestamp: Date.now(),
-    });
-    setQrValue(qrData);
-  }, [bookingId, spot.id]);
 
   return (
     <div className="bg-white rounded-lg shadow-lg p-8 text-center">
