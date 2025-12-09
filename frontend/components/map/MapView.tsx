@@ -8,7 +8,6 @@ import { useState, useCallback, useMemo, useEffect } from 'react';
 import dynamic from 'next/dynamic';
 import MapContainer from './MapContainer';
 import ParkingSpotMarker from './ParkingSpotMarker';
-import MarkerCluster from './MarkerCluster';
 import MapSearch from './MapSearch';
 import MapFilters, { FilterOptions } from './MapFilters';
 import MapControls from './MapControls';
@@ -136,10 +135,18 @@ export default function MapView({ onSpotClick }: MapViewProps) {
       </div>
 
       {/* Map */}
-      <div className="w-full h-full">
+      <div className="w-full h-full min-h-[500px] md:min-h-[600px]">
         <DynamicMapContainer center={center}>
           <MapControls onCenterChange={setCenter} />
-          <MarkerCluster markers={clusterMarkers} />
+          {filteredSpots
+            .filter((spot) => spot.coordinates)
+            .map((spot) => (
+              <ParkingSpotMarker
+                key={spot.id}
+                spot={spot}
+                onClick={onSpotClick}
+              />
+            ))}
         </DynamicMapContainer>
       </div>
 
