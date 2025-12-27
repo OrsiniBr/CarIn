@@ -5,7 +5,7 @@ This guide explains how to set up Reown AppKit (formerly WalletConnect) for the 
 ## Prerequisites
 
 - Node.js 18+ installed
-- A WalletConnect Cloud account (free at https://cloud.reown.com)
+- A WalletConnect Cloud account (free at https://c
 
 ## Setup Steps
 
