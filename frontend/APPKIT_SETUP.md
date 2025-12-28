@@ -15,8 +15,6 @@ This guide explains how to set up Reown AppKit (formerly WalletConnect) for the 
 2. Create a new project or select an existing one
 3. 
 
-### 2. Configure Environment Variables
-
 Create a `.env.local` file in the `frontend/` directory:
 
 ```bash
