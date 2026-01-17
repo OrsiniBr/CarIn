@@ -8,7 +8,7 @@ import "@openzeppelin/contracts/utils/ReentrancyGuard.sol";
  * @title ParkingSpot
  * @dev Secure, gas-optimized parking spot marketplace with booking management
  */
-contract ParkingSpot is Ownable, ReentrancyGuard {
+contract ParkingSpotV2 is Ownable, ReentrancyGuard {
     error InvalidPrice();
     error SpotDoesNotExist();
     error SpotNotAvailable();
